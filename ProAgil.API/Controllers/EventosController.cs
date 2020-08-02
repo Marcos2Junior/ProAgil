@@ -10,7 +10,7 @@ using ProAgil.API.Model;
 
 namespace ProAgil.API.Controllers
 {
-    [Route("site/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class EventosController : ControllerBase
     {
