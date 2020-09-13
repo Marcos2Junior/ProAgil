@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Evento } from '../_models/Evento';
+import { EventoService } from '../_services/evento.service';
 
 @Component({
   selector: 'app-eventos',
@@ -17,14 +18,14 @@ export class EventosComponent implements OnInit {
     this.eventosFiltrados = this.filtroLista ? this.filtrarEventos(this.filtroLista) : this.eventos;
   }
 
-  eventosFiltrados: any = [];
-  eventos: any = [];
+  eventosFiltrados: Evento[];
+  eventos: Evento[];
   imagemLargura = 50;
   imagemMargem = 2;
   mostrarImagem = false;
 
 
-  constructor(private http: HttpClient) { }
+  constructor(private eventoService: EventoService) { }
 
 
   // tslint:disable-next-line: typedef
@@ -48,9 +49,11 @@ export class EventosComponent implements OnInit {
   // tslint:disable-next-line: typedef
   getEventos()
   {
-    this.http.get('http://localhost:5000/api/eventos').subscribe(response =>
+    this.eventoService.getAllEvento().subscribe((Eventos: Evento[])  =>
     {
-      this.eventos = response;
+      this.eventos = Eventos;
+      this.eventosFiltrados = this.eventos;
+      console.log(this.eventos);
     }, error =>
     {
       console.log(error);
