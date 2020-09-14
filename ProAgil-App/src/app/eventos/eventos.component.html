@@ -186,7 +186,7 @@
             <div class="form-group col-md-3">
               <label>Qnt Pessoas</label>
               <input
-                type="text"
+                type="number"
                 class="form-control"
                 [ngClass]="{
                   'is-invalid':
@@ -292,7 +292,7 @@
           <button
             class="btn btn-primary ml-auto"
             [disabled]="!registerForm.valid"
-            (click)="salvarAlteracao()"
+            (click)="salvarAlteracao(template)"
           >
             Salvar alterações
           </button>

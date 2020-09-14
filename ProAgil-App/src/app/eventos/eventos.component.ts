@@ -25,6 +25,7 @@ export class EventosComponent implements OnInit {
 
   eventosFiltrados: Evento[];
   eventos: Evento[];
+  evento: Evento;
   imagemLargura = 50;
   imagemMargem = 2;
   mostrarImagem = false;
@@ -42,6 +43,7 @@ export class EventosComponent implements OnInit {
      }
 
 OpenModal(template: any){
+  this.registerForm.reset();
   template.show();
 }
 
@@ -73,11 +75,24 @@ OpenModal(template: any){
       telefone: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       imagemURL: ['', Validators.required]
-    })
+    });
   }
-  
-  salvarAlteracao(){
 
+  salvarAlteracao(template: any){
+    if (this.registerForm.valid)
+    {
+      this.evento = Object.assign({}, this.registerForm.value);
+      console.log(this.evento);
+      this.eventoService.postEvento(this.evento).subscribe(
+        (novoEvento: Evento) => {
+          console.log(novoEvento);
+          template.hide();
+          this.getEventos();
+        }, error => {
+          console.log(error);
+        }
+      );
+    }
   }
 
   // tslint:disable-next-line: typedef
