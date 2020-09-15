@@ -5,6 +5,8 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BsLocaleService } from 'ngx-bootstrap/datepicker';
 import { ptBrLocale, defineLocale } from 'ngx-bootstrap/chronos';
+import { ToastrService } from 'ngx-toastr';
+
 defineLocale('pt-br', ptBrLocale);
 
 @Component({
@@ -14,6 +16,7 @@ defineLocale('pt-br', ptBrLocale);
 })
 export class EventosComponent implements OnInit {
 
+  titulo = 'Eventos';
   FiltroLista: string;
   get filtroLista(): string {
     return this.FiltroLista;
@@ -33,12 +36,14 @@ export class EventosComponent implements OnInit {
   registerForm: FormGroup;
   modoSalvar = 'post';
   bodyDeletarEvento = '';
+  dataEvento: string;
 
   constructor(
     private eventoService: EventoService
     , private modalService: BsModalService
     , private fb: FormBuilder
     , private localeService: BsLocaleService
+    , private toastr: ToastrService
   ) {
     this.localeService.use('pt-br');
   }
@@ -66,8 +71,10 @@ export class EventosComponent implements OnInit {
       () => {
         template.hide();
         this.getEventos();
+        this.toastr.success('Deletado com sucesso');
       }, error => {
-        console.log(error);
+        this.toastr.error('Erro ao tentar deletar');
+
       }
     );
   }
@@ -112,23 +119,25 @@ export class EventosComponent implements OnInit {
         this.evento = Object.assign({}, this.registerForm.value);
         this.eventoService.postEvento(this.evento).subscribe(
           (novoEvento: Evento) => {
-            console.log(novoEvento);
             template.hide();
             this.getEventos();
+            this.toastr.success('Inserido com sucesso');
           }, error => {
-            console.log(error);
+          this.toastr.error('Erro ao tentar inserir');  
           }
         );
       }
       else
       {
         this.evento = Object.assign({id: this.evento.id}, this.registerForm.value);
+        console.log(this.evento);
         this.eventoService.putEvento(this.evento).subscribe(
           (novoEvento: Evento) => {
-            console.log(novoEvento);
             template.hide();
             this.getEventos();
+            this.toastr.success('Alterado com sucesso');
           }, error => {
+            this.toastr.error('Erro ao tentar alterar');
             console.log(error);
           }
         );
