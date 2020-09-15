@@ -31,12 +31,12 @@ namespace ProAgil.API.Controllers
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Banco de dados falhou");
             }
-        } 
+        }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetAction(int id) 
+        public async Task<IActionResult> GetAction(int id)
         {
-         try
+            try
             {
                 var result = await _context.Eventos.FirstOrDefaultAsync(x => x.Id == id);
                 return Ok(result);
@@ -55,15 +55,60 @@ namespace ProAgil.API.Controllers
             {
                 _context.Add(model);
 
-                if (await _context.SaveChangesAsync() != 1)
-                {
-                    return Created($"/api/evento/{model.Id}", model);
-                }
+                await _context.SaveChangesAsync();
+
+                return Created($"/api/eventos/{model.Id}", model);
+
             }
             catch (System.Exception ex)
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError,
                     $"Banco Dados Falhou {ex.Message}");
+            }
+        }
+		
+		 [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int id, Evento model)
+        {
+            try
+            {
+                if (await _context.Eventos.AnyAsync(x => x.Id == id))
+                {
+                    _context.Update(model);
+
+                    await _context.SaveChangesAsync();
+
+                    return Created($"/api/eventos/{model.Id}", model);
+                }
+                else
+                {
+                    return NotFound();
+                }
+
+            }
+            catch (System.Exception ex)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError,
+                    $"Banco Dados Falhou {ex.Message}");
+            }
+        }
+		
+		 [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var evento = await _context.Eventos.FirstOrDefaultAsync(x => x.Id == id);
+                if (evento == null) return NotFound();
+
+                _context.Remove(evento);
+
+                await _context.SaveChangesAsync();
+				return NoContent();
+            }
+            catch (System.Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Banco Dados Falhou");
             }
 
             return BadRequest();

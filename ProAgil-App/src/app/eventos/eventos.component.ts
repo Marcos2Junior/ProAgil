@@ -4,7 +4,7 @@ import { EventoService } from '../_services/evento.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BsLocaleService } from 'ngx-bootstrap/datepicker';
-import { ptBrLocale, defineLocale  } from 'ngx-bootstrap/chronos';
+import { ptBrLocale, defineLocale } from 'ngx-bootstrap/chronos';
 defineLocale('pt-br', ptBrLocale);
 
 @Component({
@@ -15,10 +15,10 @@ defineLocale('pt-br', ptBrLocale);
 export class EventosComponent implements OnInit {
 
   FiltroLista: string;
-  get filtroLista(): string{
+  get filtroLista(): string {
     return this.FiltroLista;
   }
-  set filtroLista(value: string){
+  set filtroLista(value: string) {
     this.FiltroLista = value;
     this.eventosFiltrados = this.filtroLista ? this.filtrarEventos(this.filtroLista) : this.eventos;
   }
@@ -31,23 +31,52 @@ export class EventosComponent implements OnInit {
   mostrarImagem = false;
   modalRef: BsModalRef;
   registerForm: FormGroup;
-
+  modoSalvar = 'post';
+  bodyDeletarEvento = '';
 
   constructor(
     private eventoService: EventoService
-  , private modalService: BsModalService
-  , private fb: FormBuilder
-  , private localeService: BsLocaleService
-    ) {
-      this.localeService.use('pt-br');
-     }
+    , private modalService: BsModalService
+    , private fb: FormBuilder
+    , private localeService: BsLocaleService
+  ) {
+    this.localeService.use('pt-br');
+  }
 
-OpenModal(template: any){
-  this.registerForm.reset();
-  template.show();
-}
+  editarEvento(evento: Evento, template: any) {
+    this.modoSalvar = 'put';
+    this.OpenModal(template);
+    this.evento = evento;
+    this.registerForm.patchValue(evento);
+  }
 
-  // tslint:disable-next-line: typedef
+  novoEvento(template: any) {
+    this.modoSalvar = 'post';
+    this.OpenModal(template);
+  }
+
+  excluirEvento(evento: Evento, template: any) {
+    this.OpenModal(template);
+    this.evento = evento;
+    this.bodyDeletarEvento = `Tem certeza que deseja excluir o Evento: ${evento.tema}, Código: ${evento.id}`;
+  }
+
+  ConfirmDelete(template: any){
+    this.eventoService.deleteEvento(this.evento.id).subscribe(
+      () => {
+        template.hide();
+        this.getEventos();
+      }, error => {
+        console.log(error);
+      }
+    );
+  }
+
+  OpenModal(template: any) {
+    this.registerForm.reset();
+    template.show();
+  }
+
   ngOnInit() {
     this.validation();
     this.getEventos();
@@ -61,12 +90,11 @@ OpenModal(template: any){
   }
 
   // tslint:disable-next-line: typedef
-  alterarImagem()
-  {
+  alterarImagem() {
     this.mostrarImagem = !this.mostrarImagem;
   }
 
-  validation(){
+  validation() {
     this.registerForm = this.fb.group({
       tema: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(50)]],
       local: ['', Validators.required],
@@ -78,33 +106,43 @@ OpenModal(template: any){
     });
   }
 
-  salvarAlteracao(template: any){
-    if (this.registerForm.valid)
-    {
-      this.evento = Object.assign({}, this.registerForm.value);
-      console.log(this.evento);
-      this.eventoService.postEvento(this.evento).subscribe(
-        (novoEvento: Evento) => {
-          console.log(novoEvento);
-          template.hide();
-          this.getEventos();
-        }, error => {
-          console.log(error);
-        }
-      );
+  salvarAlteracao(template: any) {
+    if (this.registerForm.valid) {
+      if (this.modoSalvar === 'post') {
+        this.evento = Object.assign({}, this.registerForm.value);
+        this.eventoService.postEvento(this.evento).subscribe(
+          (novoEvento: Evento) => {
+            console.log(novoEvento);
+            template.hide();
+            this.getEventos();
+          }, error => {
+            console.log(error);
+          }
+        );
+      }
+      else
+      {
+        this.evento = Object.assign({id: this.evento.id}, this.registerForm.value);
+        this.eventoService.putEvento(this.evento).subscribe(
+          (novoEvento: Evento) => {
+            console.log(novoEvento);
+            template.hide();
+            this.getEventos();
+          }, error => {
+            console.log(error);
+          }
+        );
+      }
     }
   }
 
   // tslint:disable-next-line: typedef
-  getEventos()
-  {
-    this.eventoService.getAllEvento().subscribe((Eventos: Evento[])  =>
-    {
+  getEventos() {
+    this.eventoService.getAllEvento().subscribe((Eventos: Evento[]) => {
       this.eventos = Eventos;
       this.eventosFiltrados = this.eventos;
       console.log(this.eventos);
-    }, error =>
-    {
+    }, error => {
       console.log(error);
     });
   }
