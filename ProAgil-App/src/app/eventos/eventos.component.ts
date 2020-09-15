@@ -37,6 +37,10 @@ export class EventosComponent implements OnInit {
   modoSalvar = 'post';
   bodyDeletarEvento = '';
   dataEvento: string;
+  file: File;
+  fileNameToUpdate: string;
+  dataAtual: string;
+
 
   constructor(
     private eventoService: EventoService
@@ -51,8 +55,9 @@ export class EventosComponent implements OnInit {
   editarEvento(evento: Evento, template: any) {
     this.modoSalvar = 'put';
     this.OpenModal(template);
-    this.evento = evento;
-    this.registerForm.patchValue(evento);
+    this.evento = Object.assign({}, evento);
+    this.evento.imagemURL = '';
+    this.registerForm.patchValue(this.evento);
   }
 
   novoEvento(template: any) {
@@ -84,6 +89,14 @@ export class EventosComponent implements OnInit {
     template.show();
   }
 
+  onFileChange(event){
+    const reader = new FileReader();
+
+    if (event.target.files && event.target.files.length){
+      this.file = event.target.files;
+    }
+  }
+
   ngOnInit() {
     this.validation();
     this.getEventos();
@@ -113,24 +126,53 @@ export class EventosComponent implements OnInit {
     });
   }
 
+  uploadImagem(){
+    if (this.modoSalvar === 'post') {
+      const nomeArquivo = this.evento.imagemURL.split('\\', 3);
+      this.evento.imagemURL = nomeArquivo[2];
+
+      this.eventoService.postUpload(this.file, nomeArquivo[2])
+        .subscribe(
+          () => {
+            this.dataAtual = new Date().getMilliseconds().toString();
+            this.getEventos();
+          }
+        );
+    } else {
+      this.evento.imagemURL = this.fileNameToUpdate;
+      this.eventoService.postUpload(this.file, this.fileNameToUpdate)
+        .subscribe(
+          () => {
+            this.dataAtual = new Date().getMilliseconds().toString();
+            this.getEventos();
+          }
+        );
+    }
+  }
+
   salvarAlteracao(template: any) {
     if (this.registerForm.valid) {
       if (this.modoSalvar === 'post') {
         this.evento = Object.assign({}, this.registerForm.value);
+
+        this.uploadImagem();
+
         this.eventoService.postEvento(this.evento).subscribe(
           (novoEvento: Evento) => {
             template.hide();
             this.getEventos();
             this.toastr.success('Inserido com sucesso');
           }, error => {
-          this.toastr.error('Erro ao tentar inserir');  
+          this.toastr.error('Erro ao tentar inserir');
           }
         );
       }
       else
       {
         this.evento = Object.assign({id: this.evento.id}, this.registerForm.value);
-        console.log(this.evento);
+
+        this.uploadImagem();
+
         this.eventoService.putEvento(this.evento).subscribe(
           (novoEvento: Evento) => {
             template.hide();
@@ -138,7 +180,6 @@ export class EventosComponent implements OnInit {
             this.toastr.success('Alterado com sucesso');
           }, error => {
             this.toastr.error('Erro ao tentar alterar');
-            console.log(error);
           }
         );
       }

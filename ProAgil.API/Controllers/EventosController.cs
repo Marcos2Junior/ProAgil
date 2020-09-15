@@ -50,7 +50,7 @@ namespace ProAgil.API.Controllers
             try
             {
                 var file = Request.Form.Files[0];
-                var folderName = Path.Combine("Resources", "Images");
+                var folderName = Path.Combine("Resources", "images");
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
                 if (file.Length > 0)
